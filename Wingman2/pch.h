@@ -8,3 +8,5 @@
 
 #include <SFML/Graphics.hpp>
 #include <lua.hpp>
+
+#include "utils.hpp"

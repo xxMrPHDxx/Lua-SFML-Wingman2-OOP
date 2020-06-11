@@ -32,16 +32,10 @@ int Game::create(lua_State* L)
 	int w = 640, h = 480;
 	std::string title = "Untitled Game";
 	if (lua_gettop(L) == 4 && lua_isinteger(L, -3) && lua_isinteger(L, -2) && lua_isstring(L, -1)) {
-		std::cout << "Got 3 arguments for Game:new!" << std::endl;
 		w = lua_tointeger(L, -3);
 		h = lua_tointeger(L, -2);
 		title = lua_tostring(L, -1);
 		lua_pop(L, 3);
-	}
-
-	std::cout << "Top: " << lua_gettop(L) << std::endl;
-	for (int i = 1; i <= lua_gettop(L); i++) {
-		std::cout << "Stack " << i << ": " << lua_typename(L, i) << std::endl;
 	}
 
 	// Create new table for our Game object
@@ -50,6 +44,8 @@ int Game::create(lua_State* L)
 	// Register member methods
 	luaL_Reg methods[] = {
 		{ "destroy", destroy },
+		{ "set_framerate_limit", set_framerate_limit },
+		{ "get_dt", get_dt },
 		{ "get_key_code", get_key_code },
 		{ "is_running", is_running },
 		{ "poll_event", poll_event },
@@ -75,10 +71,32 @@ int Game::create(lua_State* L)
 }
 
 int Game::destroy(lua_State* L) {
-	lua_getfield(L, -1, "ptr");
-	Game* game = (Game*) lua_touserdata(L, -1);
-	lua_pop(L, 1);
+	Game* game = get_game(L);
 	delete game;
+	return 1;
+}
+
+int Game::set_framerate_limit(lua_State* L) {
+	// Check the argument
+	if (lua_gettop(L) != 2 || !lua_isinteger(L, -1)) {
+		std::cout << "[Error]:: Usage: Game:set_framerate_limit(integer)!" << std::endl;
+		return 1;
+	}
+
+	// Get the argument
+	int limit = lua_tointeger(L, -1);
+	lua_pop(L, 1);
+
+	// Get the game object and set the limit
+	Game& game = *get_game(L);
+	game.window->setFramerateLimit(limit);
+	return 1;
+}
+
+int Game::get_dt(lua_State * L) {
+	Game& game = *get_game(L);
+	
+	lua_pushnumber(L, game.global_clock.restart().asMilliseconds() / 1000.f);
 	return 1;
 }
 

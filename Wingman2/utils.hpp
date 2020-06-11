@@ -13,7 +13,7 @@ template<typename T> inline T magnitude(sf::Vector2<T> vec) {
 	return std::sqrt(vec.x * vec.x + vec.y * vec.y);
 }
 
-template<typename T> inline T normalize(sf::Vector2<T> vec) {
+template<typename T> inline sf::Vector2<T> normalize(sf::Vector2<T> vec) {
 	T mag = magnitude(vec);
-	return Vector2<T>(vec.x / mag, vec.y / mag);
+	return sf::Vector2<T>(vec.x / mag, vec.y / mag);
 }

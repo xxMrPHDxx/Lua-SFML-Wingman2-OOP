@@ -16,7 +16,9 @@ public:
 
 	static int create(lua_State*);
 	static int destroy(lua_State*);
-
+	
+	static int set_framerate_limit(lua_State*);
+	static int get_dt(lua_State*);
 	static int get_key_code(lua_State*);
 	static int is_running(lua_State*);
 	static int is_event_closed(lua_State*);
