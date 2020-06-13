@@ -7,9 +7,9 @@ class PhysicsComponent
 private:
 	sf::FloatRect hitbox;
 	sf::Vector2f speed;
-	float velocityMax = 20.f;
-	float velocityMin = 2.0f;
-	float acceleration = 160.f;
+	float velocityMax = 560.f;
+	float velocityMin = 10.0f;
+	float acceleration = 320.f;
 	float deceleration = 80.f;
 	float drag = 0.98f;
 	bool moving = false;
@@ -19,6 +19,10 @@ public:
 		// Nothing to delete
 	}
 
+	const sf::Vector2f& get_position() const { return sf::Vector2f(hitbox.left, hitbox.top); }
+	const float& get_width() const { return hitbox.width; }
+	const float& get_height() const { return hitbox.height; }
+
 	void move(float, int, int);
 	void update(float);
 
@@ -27,6 +31,7 @@ public:
 	static int create(lua_State*);
 	static int destroy(lua_State*);
 
+	static int set_position(lua_State*);
 	static int get_position(lua_State*);
 	static int get_size(lua_State*);
 	static int get_speed(lua_State*);

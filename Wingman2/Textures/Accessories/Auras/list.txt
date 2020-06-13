@@ -1,0 +1,11 @@
+Textures\Accessories\Auras\aura01.png
+Textures\Accessories\Auras\aura02.png
+Textures\Accessories\Auras\aura03.png
+Textures\Accessories\Auras\aura04.png
+Textures\Accessories\Auras\aura05.png
+Textures\Accessories\Auras\aura06.png
+Textures\Accessories\Auras\aura07.png
+Textures\Accessories\Auras\aura08.png
+Textures\Accessories\Auras\aura09.png
+Textures\Accessories\Auras\aura10.png
+Textures\Accessories\Auras\aura11.png

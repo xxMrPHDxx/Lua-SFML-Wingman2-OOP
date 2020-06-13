@@ -47,12 +47,15 @@ int Game::create(lua_State* L)
 		{ "set_framerate_limit", set_framerate_limit },
 		{ "get_dt", get_dt },
 		{ "get_key_code", get_key_code },
+		{ "get_mouse_position", get_mouse_position },
 		{ "is_running", is_running },
 		{ "poll_event", poll_event },
 		{ "is_event_closed", is_event_closed },
 		{ "is_event_key_pressed", is_event_key_pressed },
 		{ "is_event_key_released", is_event_key_released },
 		{ "close", close },
+		{ "clear", clear },
+		{ "draw", draw },
 		{ "display", display }
 	};
 	for (luaL_Reg& reg : methods) {
@@ -107,6 +110,21 @@ int Game::get_key_code(lua_State* L) {
 	return 1;
 }
 
+int Game::get_mouse_position(lua_State* L) {
+	Game& game = *get_game(L);
+
+	// Mouse position
+	sf::Vector2f mouse = game.window->mapPixelToCoords(sf::Mouse::getPosition(*game.window));
+
+	// Create empty table
+	lua_newtable(L);
+	lua_pushinteger(L, mouse.x);
+	lua_seti(L, -2, 1);
+	lua_pushinteger(L, mouse.y);
+	lua_seti(L, -2, 2);
+	return 1;
+}
+
 int Game::is_running(lua_State* L) {
 	Game& game = *get_game(L);
 
@@ -146,6 +164,55 @@ int Game::close(lua_State* L) {
 	Game& game = *get_game(L);
 
 	game.window->close();
+	return 1;
+}
+
+int Game::clear(lua_State* L) {
+	// Check for arguments
+	bool has_arg = false;
+	int r, g, b, a;
+	if (lua_gettop(L) >= 4 && lua_gettop(L) <= 5) {
+		for (int i = 1; i <= lua_gettop(L) - 1; i++) {
+			if (!lua_isinteger(L, -i)) break;
+			has_arg = true;
+		}
+	}
+
+	// Get the corresponding arguments
+	if (has_arg) {
+		int off = lua_gettop(L) == 4 ? -3 : -4;
+		int* ptr[] = { &r, &g, &b };
+		for (int i = 0; i < 3; i++) {
+			*ptr[i] = (int)lua_tointeger(L, off + i);
+		}
+		a = lua_gettop(L) == 4 ? 255 : lua_tointeger(L, -1);
+		lua_pop(L, lua_gettop(L) == 4 ? 3 : 4);
+	}
+
+	Game& game = *get_game(L);
+
+	if (has_arg) game.window->clear(sf::Color(r, g, b, a));
+	else game.window->clear();
+	return 1;
+}
+
+int Game::draw(lua_State* L)
+{
+	// Check the argument
+	if (lua_gettop(L) != 2 || !lua_isuserdata(L, -1)) {
+		std::cout << "[Error] Argument expects a sprite! Got " << lua_typename(L, -1) << "." << std::endl;
+		return 1;
+	}
+
+	// Get the argument
+	sf::Sprite& spr = *((sf::Sprite*)lua_touserdata(L, -1));
+	lua_pop(L, 1);
+
+	// Get the game object
+	Game& game = *get_game(L);
+
+	// Draw the sprite
+	game.window->draw(spr);
 	return 1;
 }
 

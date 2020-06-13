@@ -7,8 +7,8 @@ void PhysicsComponent::move(float dt, int dir_x, int dir_y)
     this->moving = true;
 
     // Update acceleration depending on direction
-    this->speed.x += dt * (dir_x > 0 ? 1 : -1) * this->acceleration;
-    this->speed.y += dt * (dir_y > 0 ? 1 : -1) * this->acceleration;
+    if(dir_x != 0) this->speed.x += dt * (dir_x > 0 ? 1 : -1) * this->acceleration;
+    if(dir_y != 0) this->speed.y += dt * (dir_y > 0 ? 1 : -1) * this->acceleration;
 
     // Limit velocity
     if (magnitude(this->speed) > this->velocityMax) this->speed = normalize(this->speed) * this->velocityMax;
@@ -16,6 +16,12 @@ void PhysicsComponent::move(float dt, int dir_x, int dir_y)
 
 void PhysicsComponent::update(float dt)
 {
+    // Apply the speed
+    this->hitbox.left += this->speed.x * dt;
+    this->hitbox.top  += this->speed.y * dt;
+
+    // std::cout << "Moving (" << this->speed.x << ", " << this->speed.y << ")" << std::endl;
+
     // Update deceleration
     this->speed *= this->drag;
     if (!this->moving && magnitude(this->speed) < this->velocityMin)
@@ -74,6 +80,7 @@ int PhysicsComponent::create(lua_State* L)
     // Set member methods
     luaL_Reg methods[] = {
         { "destroy", destroy },
+        { "set_position", set_position },
         { "get_position", get_position },
         { "get_size", get_size },
         { "get_speed", get_speed },
@@ -102,6 +109,27 @@ int PhysicsComponent::destroy(lua_State* L)
 {
     PhysicsComponent* obj = get_instance(L);
     delete obj;
+    return 1;
+}
+
+int PhysicsComponent::set_position(lua_State* L)
+{
+    // Check the argument
+    if (lua_gettop(L) != 3 || !lua_isnumber(L, -2) || !lua_isnumber(L, -1)) {
+        return 1;
+    }
+
+    // Get the argument
+    float x = lua_tonumber(L, -2);
+    float y = lua_tonumber(L, -1);
+    lua_pop(L, 2);
+
+    // Get the object
+    PhysicsComponent& obj = *get_instance(L);
+
+    // Set the position
+    obj.hitbox.left = x;
+    obj.hitbox.top = y;
     return 1;
 }
 

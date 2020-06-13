@@ -34,6 +34,20 @@ int Player::create(lua_State* L)
 	// Set the member methods
 	luaL_Reg methods[] = {
 		{ "destroy", destroy },
+		{ "set_angle", set_angle },
+		{ "set_sprite_scale", set_sprite_scale },
+		{ "get_auras_sprite", get_auras_sprite },
+		{ "get_cpits_sprite", get_cpits_sprite },
+		{ "get_lwing_sprite", get_lwing_sprite },
+		{ "get_rwing_sprite", get_rwing_sprite },
+		{ "load_auras_texture", load_auras_texture },
+		{ "load_cpits_texture", load_cpits_texture },
+		{ "load_lwing_texture", load_lwing_texture },
+		{ "load_rwing_texture", load_rwing_texture },
+		{ "cycle_auras", cycle_auras },
+		{ "cycle_cpits", cycle_cpits },
+		{ "cycle_lwing", cycle_lwing },
+		{ "cycle_rwing", cycle_rwing },
 		{ "move", move },
 		{ "update", update }
 	};
@@ -68,6 +82,118 @@ int Player::destroy(lua_State* L)
 	return 1;
 }
 
+int Player::set_angle(lua_State* L)
+{
+	// Check the argument
+	if (lua_gettop(L) != 2 || !lua_isnumber(L, -1)) {
+		return 1;
+	}
+
+	// Get the argument (angle in degrees)
+	float angle = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+
+	// Get the player object
+	Player& obj = *get_instance(L);
+
+	// Set the angle
+	obj.angle = angle;
+	return 1;
+}
+
+int Player::set_sprite_scale(lua_State* L)
+{
+	// Check the argument
+	if (lua_gettop(L) != 2 || !lua_isnumber(L, -1)) {
+		return 1;
+	}
+
+	// Get the argument (scale)
+	float scale = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+
+	// Get the player
+	Player& obj = *get_instance(L);
+
+	// Set the sprite scale for all available sprites
+	for (sf::Sprite* spr : { &obj.spr_auras, &obj.spr_cpits, &obj.spr_lwing, &obj.spr_rwing }) {
+		spr->setScale(scale, scale);
+	}
+	return 1;
+}
+
+int Player::get_auras_sprite(lua_State* L)
+{
+	get_sprite(L, 0);
+	return 1;
+}
+
+int Player::get_cpits_sprite(lua_State* L)
+{
+	get_sprite(L, 1);
+	return 1;
+}
+
+int Player::get_lwing_sprite(lua_State* L)
+{
+	get_sprite(L, 2);
+	return 1;
+}
+
+int Player::get_rwing_sprite(lua_State* L)
+{
+	get_sprite(L, 3);
+	return 1;
+}
+
+int Player::load_auras_texture(lua_State* L)
+{
+	lua_pushboolean(L, load_texture(L, 0));
+	return 1;
+}
+
+int Player::load_cpits_texture(lua_State* L)
+{
+	lua_pushboolean(L, load_texture(L, 1));
+	return 1;
+}
+
+int Player::load_lwing_texture(lua_State* L)
+{
+	lua_pushboolean(L, load_texture(L, 2));
+	return 1;
+}
+
+int Player::load_rwing_texture(lua_State* L)
+{
+	lua_pushboolean(L, load_texture(L, 3));
+	return 1;
+}
+
+int Player::cycle_auras(lua_State* L)
+{
+	cycle_texture(L, 0);
+	return 1;
+}
+
+int Player::cycle_cpits(lua_State* L)
+{
+	cycle_texture(L, 1);
+	return 1;
+}
+
+int Player::cycle_lwing(lua_State* L)
+{
+	cycle_texture(L, 2);
+	return 1;
+}
+
+int Player::cycle_rwing(lua_State* L)
+{
+	cycle_texture(L, 3);
+	return 1;
+}
+
 int Player::move(lua_State* L)
 {
 	// Check the arguments
@@ -85,7 +211,7 @@ int Player::move(lua_State* L)
 
 	// Get the global dt if any
 	lua_getglobal(L, "dt");
-	float dt = lua_isnumber(L, -1) ? float(lua_tonumber(L, -1)) : 0.0016f;
+	float dt = lua_isnumber(L, -1) ? float(lua_tonumber(L, -1)) : 0.016f;
 	lua_pop(L, 1);
 
 	// Get the physics component, if any
@@ -118,11 +244,32 @@ int Player::update(lua_State* L)
 		lua_pop(L, 1);
 		return 1;
 	}
-	PhysicsComponent* comp = PhysicsComponent::get_instance(L);
+	PhysicsComponent& comp = *PhysicsComponent::get_instance(L);
 	lua_pop(L, 1);
 
 	// Update the physics component
-	comp->update(dt);
+	comp.update(dt);
+
+	// Check if all part textures have at least a texture to be used
+	if (!obj.tex_auras.size() || !obj.tex_cpits.size() || !obj.tex_lwing.size() || !obj.tex_rwing.size())
+		return 1;
+
+	// Set the corresponding texture
+	obj.spr_auras.setTexture(obj.tex_auras[obj.idx_auras]);
+	obj.spr_cpits.setTexture(obj.tex_cpits[obj.idx_cpits]);
+	obj.spr_lwing.setTexture(obj.tex_lwing[obj.idx_lwing]);
+	obj.spr_rwing.setTexture(obj.tex_rwing[obj.idx_rwing]);
+
+	for (sf::Sprite* spr : { &obj.spr_auras, &obj.spr_cpits, &obj.spr_lwing, &obj.spr_rwing }) {
+		// Set the position
+		spr->setPosition(comp.get_position());
+
+		// Set the origin
+		spr->setOrigin(comp.get_width() / 2, comp.get_height() / 2);
+
+		// Rotate all the sprites except the aura sprite
+		if(spr != &obj.spr_auras) spr->setRotation(obj.angle);
+	}
 	return 1;
 }
 
@@ -132,4 +279,76 @@ Player* Player::get_instance(lua_State* L)
 	Player* obj = (Player*)lua_touserdata(L, -1);
 	lua_pop(L, 1);
 	return obj;
+}
+
+void Player::get_sprite(lua_State* L, int idx)
+{
+	// Verify the index (range 0-3)
+	if (!(idx >= 0 && idx <= 3)) {
+		lua_pushnil(L);
+		return;
+	}
+
+	// Get the player object
+	Player& obj = *get_instance(L);
+
+	// Get and push the corresponding sprite
+	sf::Sprite* sprites[] = { &obj.spr_auras, &obj.spr_cpits, &obj.spr_lwing, &obj.spr_rwing };
+	lua_pushlightuserdata(L, sprites[idx]);
+}
+
+bool Player::load_texture(lua_State* L, int idx)
+{
+	// Check the index if it's valid or not (range 0-3)
+	if (!(idx >= 0 && idx <= 3))
+		return false;
+
+	// Check the path argument
+	if (lua_gettop(L) != 2 || !lua_isstring(L, -1)) return false;
+
+	// Get the path argument
+	std::string path = lua_tostring(L, -1);
+	lua_pop(L, 1);
+
+	// Get the player object
+	Player& obj = *get_instance(L);
+
+	// Load the texture
+	sf::Texture tex;
+	if (!tex.loadFromFile(path))
+		return false;
+
+	// Push it into the corresponding vectors
+	Textures* arr[] = { &obj.tex_auras, &obj.tex_cpits, &obj.tex_lwing, &obj.tex_rwing };
+	Textures& textures = *(arr[idx]);
+	textures.push_back(tex);
+	return true;
+}
+
+void Player::cycle_texture(lua_State* L, int idx)
+{
+	// Check the index if it's valid (0-3)
+	if (!(idx >= 0 && idx <= 3)) return;
+
+	// Get the argument (dir) if any
+	int dir = 1;
+	if (lua_gettop(L) == 2 && lua_isinteger(L, -1)) {
+		dir = (int)lua_tointeger(L, -1);
+		lua_pop(L, 1);
+	}
+
+	// Get the player instance
+	Player& obj = *get_instance(L);
+
+	// Get the corresponding sf::Texture array
+	Textures* arr[] = { &obj.tex_auras, &obj.tex_cpits, &obj.tex_lwing, &obj.tex_rwing };
+	Textures& textures = *arr[idx];
+
+	// Increment the sprite index accordingly
+	int* idxs[] = { &obj.idx_auras, &obj.idx_cpits, &obj.idx_lwing, &obj.idx_rwing };
+	*idxs[idx] += dir;
+
+	// Check the bounds
+	if (*idxs[idx] < 0) *idxs[idx] = textures.size()-1;
+	if (*idxs[idx] >= textures.size()) *idxs[idx] = 0;
 }

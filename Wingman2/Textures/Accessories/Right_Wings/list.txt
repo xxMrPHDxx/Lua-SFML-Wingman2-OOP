@@ -1,0 +1,13 @@
+Textures\Accessories\Right_Wings\wingRight01.png
+Textures\Accessories\Right_Wings\wingRight02.png
+Textures\Accessories\Right_Wings\wingRight03.png
+Textures\Accessories\Right_Wings\wingRight04.png
+Textures\Accessories\Right_Wings\wingRight05.png
+Textures\Accessories\Right_Wings\wingRight06.png
+Textures\Accessories\Right_Wings\wingRight07.png
+Textures\Accessories\Right_Wings\wingRight08.png
+Textures\Accessories\Right_Wings\wingRight09.png
+Textures\Accessories\Right_Wings\wingRight10.png
+Textures\Accessories\Right_Wings\wingRight11.png
+Textures\Accessories\Right_Wings\wingRight12.png
+Textures\Accessories\Right_Wings\wingRight13.png
