@@ -22,6 +22,9 @@ public:
 	const sf::Vector2f& get_position() const { return sf::Vector2f(hitbox.left, hitbox.top); }
 	const float& get_width() const { return hitbox.width; }
 	const float& get_height() const { return hitbox.height; }
+	const sf::Vector2f& get_speed() const { return speed; }
+	const float& get_min_speed() const { return velocityMin; }
+	const float& get_max_speed() const { return velocityMax; }
 
 	void move(float, int, int);
 	void update(float);

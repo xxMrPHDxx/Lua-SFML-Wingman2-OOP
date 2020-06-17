@@ -230,6 +230,13 @@ int Player::move(lua_State* L)
 
 int Player::update(lua_State* L)
 {
+	// Get the arguments (mouse_x, mouse_y)
+	sf::Vector2f mouse;
+	if (lua_gettop(L) == 3 && lua_isnumber(L, -2) && lua_isnumber(L, -1)) {
+		mouse = sf::Vector2f(lua_tonumber(L, -2), lua_tonumber(L, -1));
+		lua_pop(L, 2);
+	}
+
 	// Get the player
 	Player& obj = *get_instance(L);
 
@@ -247,7 +254,11 @@ int Player::update(lua_State* L)
 	PhysicsComponent& comp = *PhysicsComponent::get_instance(L);
 	lua_pop(L, 1);
 
+	// Get the position
+	sf::Vector2f pos = comp.get_position();
+
 	// Update the physics component
+	obj.angle = std::atan2(mouse.y - pos.y, mouse.x - pos.x) + PI / 2.f;
 	comp.update(dt);
 
 	// Check if all part textures have at least a texture to be used
@@ -260,15 +271,40 @@ int Player::update(lua_State* L)
 	obj.spr_lwing.setTexture(obj.tex_lwing[obj.idx_lwing]);
 	obj.spr_rwing.setTexture(obj.tex_rwing[obj.idx_rwing]);
 
+	// Get the origin
+	sf::Vector2f origin(comp.get_width() / 2, comp.get_height() / 2);
+
+	// Get vector 1 (mouse to origin)
+	sf::Vector2f v1 = mouse - origin;
+
+	// Get vector 2 (speed)
+	sf::Vector2f v2 = comp.get_speed();
+
+	// Calculate speed
+	float speed = magnitude(v2);
+
+	// Get the time
+	lua_getglobal(L, "time");
+	float time = lua_isnumber(L, -1) ? lua_tonumber(L, -1) : 0.f;
+	lua_pop(L, 1);
+
+	// Calculate the scale
+	float scale = 20.f * speed / comp.get_max_speed();
+	sf::Vector2f heading = normalize(v2);
+
 	for (sf::Sprite* spr : { &obj.spr_auras, &obj.spr_cpits, &obj.spr_lwing, &obj.spr_rwing }) {
 		// Set the position
-		spr->setPosition(comp.get_position());
+		if (spr == &obj.spr_lwing || spr == &obj.spr_rwing) {
+			float angle = spr == &obj.spr_lwing ? -170.f : 170.f;
+			spr->setPosition(pos + angle_relative_to(heading, angle) * scale);
+		}
+		else spr->setPosition(pos);
 
 		// Set the origin
-		spr->setOrigin(comp.get_width() / 2, comp.get_height() / 2);
+		spr->setOrigin(origin);
 
 		// Rotate all the sprites except the aura sprite
-		if(spr != &obj.spr_auras) spr->setRotation(obj.angle);
+		if (spr != &obj.spr_auras) spr->setRotation(obj.angle * RAD_TO_DEG);
 	}
 	return 1;
 }

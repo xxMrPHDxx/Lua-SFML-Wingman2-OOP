@@ -6,6 +6,12 @@ game:set_framerate_limit(60)
 player = Player:new()
 player:set_sprite_scale(0.8)
 player.physics = PhysicsComponent:new(150, 150, 200, 200)
+player.draw = function(game)
+	game:draw(player:get_auras_sprite())
+	game:draw(player:get_lwing_sprite())
+	game:draw(player:get_rwing_sprite())
+	game:draw(player:get_cpits_sprite())
+end
 
 -- Texture loading...
 for _, path in pairs(lines_from_file("Textures/Accessories/Auras/list.txt")      ) do
@@ -47,16 +53,7 @@ while game:is_running() do
 	dt = game:get_dt()
 	time = time + dt
 
-	mouse_x, mouse_y = table.unpack(game:get_mouse_position())
-	player_x, player_y = table.unpack(player.physics:get_position());
-	dx = (mouse_x - player_x)
-	dy = (mouse_y - player_y)
-	angle = math.atan(dy, dx) * rad_to_deg + 90
-
-	-- angle = time * 1.5 * rad_to_deg
-	-- player:set_angle(360 * math.sin(time))
-	player:set_angle(angle)
-	-- player.physics:set_position(200+100*math.cos(time), 200+100*math.sin(time))
+	local mouse_x, mouse_y = table.unpack(game:get_mouse_position())
 
 	-- Input handling
 	if keys[ 0] then player:move(-1,  0) end
@@ -65,15 +62,18 @@ while game:is_running() do
 	if keys[18] then player:move( 0,  1) end
 
 	-- Update
-	player:update()
+	player:update(mouse_x, mouse_y)
 
 	-- Rendering
 	game:clear(20, 20, 20, 20)
 
+	---[[
 	game:draw(player:get_auras_sprite())
 	game:draw(player:get_lwing_sprite())
 	game:draw(player:get_rwing_sprite())
 	game:draw(player:get_cpits_sprite())
+	--]]
+	-- player.draw(game)
 
 	game:display()
 end
