@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Player.h"
+#include "Game.h"
 
 void Player::register_class(lua_State* L)
 {
@@ -49,7 +50,8 @@ int Player::create(lua_State* L)
 		{ "cycle_lwing", cycle_lwing },
 		{ "cycle_rwing", cycle_rwing },
 		{ "move", move },
-		{ "update", update }
+		{ "update", update },
+		{ "draw", draw }
 	};
 	for (luaL_Reg& reg : methods) {
 		lua_pushcfunction(L, reg.func);
@@ -296,7 +298,7 @@ int Player::update(lua_State* L)
 		// Set the position
 		if (spr == &obj.spr_lwing || spr == &obj.spr_rwing) {
 			float angle = spr == &obj.spr_lwing ? -170.f : 170.f;
-			spr->setPosition(pos + angle_relative_to(heading, angle) * scale);
+			spr->setPosition(speed > comp.get_min_speed() ? (pos + angle_relative_to(heading, angle) * scale) : pos);
 		}
 		else spr->setPosition(pos);
 
@@ -307,6 +309,27 @@ int Player::update(lua_State* L)
 		if (spr != &obj.spr_auras) spr->setRotation(obj.angle * RAD_TO_DEG);
 	}
 	return 1;
+}
+
+int Player::draw(lua_State* L)
+{
+	// Check for game argument
+	if (lua_gettop(L) != 2 || !lua_isuserdata(L, -1)) {
+		return 1;
+	}
+
+	// Get the game instance
+	Game* game = (Game*) lua_touserdata(L, -1);
+	lua_pop(L, 1);
+	if (game == NULL) return 1;
+
+
+	// Get the player instance
+	Player& obj = *get_instance(L);
+
+	for (sf::Sprite* spr : { &obj.spr_auras, &obj.spr_lwing, &obj.spr_rwing, &obj.spr_cpits }) {
+		game->draw(*spr);
+	}
 }
 
 Player* Player::get_instance(lua_State* L)

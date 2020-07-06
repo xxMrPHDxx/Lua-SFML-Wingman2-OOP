@@ -32,5 +32,9 @@ public:
 	static int draw(lua_State*);
 	static int display(lua_State*);
 	static Game* get_game(lua_State*);
+public:
+	void draw(sf::Sprite& spr) {
+		window->draw(spr);
+	}
 };
 

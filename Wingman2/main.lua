@@ -6,12 +6,6 @@ game:set_framerate_limit(60)
 player = Player:new()
 player:set_sprite_scale(0.8)
 player.physics = PhysicsComponent:new(150, 150, 200, 200)
-player.draw = function(game)
-	game:draw(player:get_auras_sprite())
-	game:draw(player:get_lwing_sprite())
-	game:draw(player:get_rwing_sprite())
-	game:draw(player:get_cpits_sprite())
-end
 
 -- Texture loading...
 for _, path in pairs(lines_from_file("Textures/Accessories/Auras/list.txt")      ) do
@@ -67,13 +61,13 @@ while game:is_running() do
 	-- Rendering
 	game:clear(20, 20, 20, 20)
 
-	---[[
+	--[[
 	game:draw(player:get_auras_sprite())
 	game:draw(player:get_lwing_sprite())
 	game:draw(player:get_rwing_sprite())
 	game:draw(player:get_cpits_sprite())
 	--]]
-	-- player.draw(game)
+	player:draw(game.ptr)
 
 	game:display()
 end

@@ -44,6 +44,7 @@ public:
 	static int cycle_rwing(lua_State*);
 	static int move(lua_State*);
 	static int update(lua_State*);
+	static int draw(lua_State*);
 	static Player* get_instance(lua_State*);
 
 private:
